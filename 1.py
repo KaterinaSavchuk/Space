@@ -7,10 +7,15 @@ mixer.music.play()
 fire_sound = mixer.Sound('fire.ogg')
 
 font.init()
+font1 = font.Font(None, 80)
 font2 = font.Font(None, 36)
 
+win = font1.render('YOU WIN', True, (255, 255, 255))
+win = font1.render('YOU LOSE', True, (180, 0, 0))
+
 img_back = "galaxy.jpg"
-img_hero = "rocket.png" 
+img_hero = "rocket.png"
+img_bullet = "bullet.png" 
 img_enemy = "ufo.png"  
 
 clock = time.Clock()
@@ -18,6 +23,7 @@ FPS = 60
 
 score = 0
 lost = 0
+max_lost = 3
 
 class GameSprite(sprite.Sprite):
     
@@ -45,6 +51,14 @@ class GameSprite(sprite.Sprite):
 
     def reset(self):
         window.blit(self.image,(self.rect.x, self.rect.y))
+
+class Bullet(GameSprite):
+
+    def update(self):
+        self.rect.y += self.speed
+
+        if self.rect.y < 0:
+            self.kill()
  
 class Player(GameSprite):
  
@@ -56,7 +70,8 @@ class Player(GameSprite):
             self.rect.x += self.speed
  
     def fire(self):
-        pass
+        bullet = Bullet(img_bullet, self.rect.centerx, self.rect.top, 15, 20, -15)
+        bullets.add(bullet)
     
 class Enemy(GameSprite):
     
@@ -82,10 +97,11 @@ monsters = sprite.Group()
 for i in range(1, 6):
     monster = Enemy(img_enemy, randint( 80, win_width - 80), -40, 80, 50, randint(1, 3))
     monsters.add(monster)
- 
+
+bullets = sprite.Group()
+
 finish = False
  
-
 run = True 
  
 while run:
@@ -93,6 +109,11 @@ while run:
     for e in event.get():
         if e.type == QUIT:
             run = False
+        
+        elif e.type == KEYDOWN:
+            if e.key == K_SPACE:
+                fire_sound.play()
+                ship.fire()
  
     if not finish:
       
@@ -105,10 +126,12 @@ while run:
         
         ship.update()
         monsters.update()
+        bullets.update()
  
         
         ship.reset()
         monsters.draw(window)
+        bullets.draw(window)
  
     display.update()
     clock.tick(FPS)
